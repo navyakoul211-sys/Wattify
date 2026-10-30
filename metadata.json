@@ -1,0 +1,8 @@
+{
+  "name": "ESP32 Smart Energy Meter",
+  "description": "Real-time IoT telemetry monitor for ESP32 WROOM-32 with ZMPT101B voltage sensor, ACS712 current sensor, 5V relay controller, and 0.96 inch OLED display mirroring.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
