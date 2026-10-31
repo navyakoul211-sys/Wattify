@@ -22,7 +22,7 @@ export interface DeviceSettings {
   nominalVoltage: number;
   sensorModelACS: 'ACS712-05B' | 'ACS712-20A' | 'ACS712-30A';
   simulationActive: boolean;
-  activeLoadProfile: 'idle' | 'bulb_60w' | 'fridge_150w' | 'heater_1500w' | 'microwave_900w' | 'custom';
+  activeLoadProfile: 'lamp_9w' | 'idle' | string;
   customPowerWatts: number;
   customPowerFactor: number;
 }

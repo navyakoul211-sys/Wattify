@@ -1,8 +1,12 @@
-import React from 'react';
-import { Cpu, Zap, ShieldCheck, AlertTriangle, ExternalLink } from 'lucide-react';
+import React, { useState } from 'react';
+import { Cpu, Zap, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { PinMapping } from '../types/telemetry';
+import hardwarePhoto from '../assets/images/smart_energy_meter_hardware_1793364550589.jpg';
 
 export const HardwarePinoutView: React.FC = () => {
+  const [imgSrc, setImgSrc] = useState<string>(hardwarePhoto || '/assets/images/smart_energy_meter_hardware.jpg');
+  const [imgFailed, setImgFailed] = useState<boolean>(false);
+
   const pinMappings: PinMapping[] = [
     {
       espPin: 'GPIO 34',
@@ -65,18 +69,31 @@ export const HardwarePinoutView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Hardware Photography Showcase Card */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-xl overflow-hidden">
-        <div className="relative aspect-[16/9] max-h-96 w-full bg-slate-950">
-          <img
-            src="/src/assets/images/smart_energy_meter_hardware_1793364550589.jpg"
-            alt="ESP32 Smart Energy Meter Test Bench with ZMPT101B, ACS712, 5V Relay, and 0.96 OLED Display"
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // Graceful fallback container if image load errors
-              e.currentTarget.style.display = 'none';
-            }}
-          />
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="relative aspect-[16/9] max-h-96 w-full bg-slate-950 flex items-center justify-center">
+          {!imgFailed ? (
+            <img
+              src={imgSrc}
+              alt="ESP32 Smart Energy Meter Test Bench with ZMPT101B, ACS712, 5V Relay, and 0.96 OLED Display"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+              onError={() => {
+                if (imgSrc !== '/assets/images/smart_energy_meter_hardware.jpg') {
+                  setImgSrc('/assets/images/smart_energy_meter_hardware.jpg');
+                } else {
+                  setImgFailed(true);
+                }
+              }}
+            />
+          ) : (
+            <div className="p-8 text-center text-slate-400 space-y-2">
+              <Cpu className="w-12 h-12 text-cyan-400 mx-auto" />
+              <div className="font-semibold text-white">ESP32 WROOM-32 Smart Energy Meter Rig</div>
+              <div className="text-xs text-slate-400 font-mono">
+                ZMPT101B (GPIO 34) · ACS712 (GPIO 35) · 5V Relay (GPIO 4) · OLED (I2C 21/22)
+              </div>
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent pointer-events-none" />
           <div className="absolute bottom-4 left-4 right-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2 pointer-events-auto">
             <div>
@@ -108,7 +125,7 @@ export const HardwarePinoutView: React.FC = () => {
       </div>
 
       {/* 30-Pin Wiring Table */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
             <h4 className="text-sm font-semibold text-white">
@@ -157,7 +174,7 @@ export const HardwarePinoutView: React.FC = () => {
       {/* Module-by-Module Circuit Architecture Guide */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Module 1: ZMPT101B Voltage Transformer */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-cyan-400" />
             <h5 className="text-sm font-semibold text-white">1. ZMPT101B AC Voltage Module</h5>
@@ -174,7 +191,7 @@ export const HardwarePinoutView: React.FC = () => {
         </div>
 
         {/* Module 2: ACS712 Current Sensor */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-blue-400" />
             <h5 className="text-sm font-semibold text-white">2. ACS712 Current Sensor Module</h5>
@@ -191,7 +208,7 @@ export const HardwarePinoutView: React.FC = () => {
         </div>
 
         {/* Module 3: 1-Channel 5V Relay */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-emerald-400" />
             <h5 className="text-sm font-semibold text-white">3. 1-Channel 5V Relay Module</h5>
@@ -208,7 +225,7 @@ export const HardwarePinoutView: React.FC = () => {
         </div>
 
         {/* Module 4: 0.96" I2C OLED Display */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-amber-400" />
             <h5 className="text-sm font-semibold text-white">4. 0.96" SSD1306 OLED Display</h5>

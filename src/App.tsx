@@ -13,13 +13,13 @@ export default function App() {
   const [telemetry, setTelemetry] = useState<TelemetryPoint>({
     id: 'init',
     timestamp: Date.now(),
-    voltage: 231.4,
-    current: 1.87,
-    power: 432.8,
-    apparentPower: 437.0,
-    powerFactor: 0.99,
+    voltage: 230.4,
+    current: 0.043,
+    power: 9.0,
+    apparentPower: 9.9,
+    powerFactor: 0.91,
     frequency: 50.0,
-    energy: 0.142,
+    energy: 0.014,
     relayState: true,
     source: 'simulated',
   });
@@ -39,9 +39,9 @@ export default function App() {
     nominalVoltage: 230.0,
     sensorModelACS: 'ACS712-20A',
     simulationActive: true,
-    activeLoadProfile: 'bulb_60w',
-    customPowerWatts: 350,
-    customPowerFactor: 0.95,
+    activeLoadProfile: 'lamp_9w',
+    customPowerWatts: 9,
+    customPowerFactor: 0.91,
   });
 
   // Fetch initial history & settings from backend
@@ -172,43 +172,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Mobile Tab Navigation Bar */}
-        <div className="flex md:hidden items-center justify-around bg-slate-900 border border-slate-800 rounded-xl p-1 mb-6 text-xs">
-          <button
-            onClick={() => setActiveTab('telemetry')}
-            className={`flex-1 py-2 text-center rounded-lg font-medium transition-colors ${
-              activeTab === 'telemetry' ? 'bg-slate-800 text-cyan-400 font-bold' : 'text-slate-400'
-            }`}
-          >
-            Telemetry
-          </button>
-          <button
-            onClick={() => setActiveTab('oled')}
-            className={`flex-1 py-2 text-center rounded-lg font-medium transition-colors ${
-              activeTab === 'oled' ? 'bg-slate-800 text-cyan-400 font-bold' : 'text-slate-400'
-            }`}
-          >
-            OLED 0.96"
-          </button>
-          <button
-            onClick={() => setActiveTab('pinout')}
-            className={`flex-1 py-2 text-center rounded-lg font-medium transition-colors ${
-              activeTab === 'pinout' ? 'bg-slate-800 text-cyan-400 font-bold' : 'text-slate-400'
-            }`}
-          >
-            Pinout
-          </button>
-          <button
-            onClick={() => setActiveTab('firmware')}
-            className={`flex-1 py-2 text-center rounded-lg font-medium transition-colors ${
-              activeTab === 'firmware' ? 'bg-slate-800 text-cyan-400 font-bold' : 'text-slate-400'
-            }`}
-          >
-            Arduino
-          </button>
-        </div>
-
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5">
         {/* Dynamic Tab Views */}
         {activeTab === 'telemetry' && (
           <LiveTelemetryView

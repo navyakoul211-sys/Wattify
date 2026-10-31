@@ -46,24 +46,24 @@ const settings: DeviceSettings = {
   nominalVoltage: 230.0,
   sensorModelACS: 'ACS712-20A',
   simulationActive: true,
-  activeLoadProfile: 'bulb_60w',
-  customPowerWatts: 350,
-  customPowerFactor: 0.95,
+  activeLoadProfile: 'lamp_9w',
+  customPowerWatts: 9,
+  customPowerFactor: 0.91,
 };
 
 let relayState = true;
-let totalEnergyAccumulatedKWh = 0.084;
+let totalEnergyAccumulatedKWh = 0.014;
 let lastSeenESP32: number | null = null;
 let lastSource: 'esp32' | 'simulated' = 'simulated';
 
 let currentTelemetry: TelemetryPoint = {
   id: 'init-0',
   timestamp: Date.now(),
-  voltage: 230.8,
-  current: 0.26,
-  power: 59.8,
-  apparentPower: 60.0,
-  powerFactor: 0.99,
+  voltage: 230.4,
+  current: 0.043,
+  power: 9.0,
+  apparentPower: 9.9,
+  powerFactor: 0.91,
   frequency: 50.0,
   energy: totalEnergyAccumulatedKWh,
   relayState: true,
@@ -76,19 +76,19 @@ const history: TelemetryPoint[] = [];
 const now = Date.now();
 for (let i = 29; i >= 0; i--) {
   const t = now - i * 2000;
-  const v = 230 + (Math.sin(i * 0.3) * 2.2);
-  const a = relayState ? (0.26 + Math.sin(i * 0.5) * 0.02) : 0;
-  const p = Math.round(v * a * 0.98 * 10) / 10;
+  const v = 230.0 + (Math.sin(i * 0.3) * 1.5);
+  const a = relayState ? (0.043 + Math.sin(i * 0.5) * 0.002) : 0;
+  const p = Math.round(v * a * 0.91 * 10) / 10;
   history.push({
     id: `seed-${i}`,
     timestamp: t,
     voltage: Math.round(v * 10) / 10,
-    current: Math.round(a * 100) / 100,
+    current: Math.round(a * 1000) / 1000,
     power: p,
     apparentPower: Math.round(v * a * 10) / 10,
-    powerFactor: 0.99,
+    powerFactor: 0.91,
     frequency: 50.0,
-    energy: Math.round((totalEnergyAccumulatedKWh - (i * 0.00003)) * 10000) / 10000,
+    energy: Math.round((totalEnergyAccumulatedKWh - (i * 0.000005)) * 10000) / 10000,
     relayState: relayState,
     source: 'simulated',
   });
@@ -143,48 +143,28 @@ setInterval(() => {
 
   // Calculate simulated load based on profile
   let targetWatts = 0;
-  let targetPf = 0.98;
+  let targetPf = 0.91;
 
   if (relayState) {
-    switch (settings.activeLoadProfile) {
-      case 'idle':
-        targetWatts = 4.5 + Math.random() * 1.5;
-        targetPf = 0.65;
-        break;
-      case 'bulb_60w':
-        targetWatts = 60.0 + (Math.sin(Date.now() / 3000) * 1.8);
-        targetPf = 0.99;
-        break;
-      case 'fridge_150w':
-        // Cycle every 20s
-        const cycle = Math.sin(Date.now() / 6000) > 0.1;
-        targetWatts = cycle ? 145 + Math.sin(Date.now() / 2000) * 8 : 6.2;
-        targetPf = cycle ? 0.82 : 0.6;
-        break;
-      case 'heater_1500w':
-        targetWatts = 1480 + (Math.random() * 25 - 12);
-        targetPf = 1.0;
-        break;
-      case 'microwave_900w':
-        targetWatts = 920 + Math.sin(Date.now() / 1500) * 35;
-        targetPf = 0.91;
-        break;
-      case 'custom':
-        targetWatts = settings.customPowerWatts + (Math.random() * 4 - 2);
-        targetPf = settings.customPowerFactor;
-        break;
+    if (settings.activeLoadProfile === 'idle') {
+      targetWatts = 0.0;
+      targetPf = 1.0;
+    } else {
+      // 9W Lamp load: standard 9W LED bulb, drawing ~0.043A at 230V
+      targetWatts = 9.0 + (Math.sin(Date.now() / 2500) * 0.25);
+      targetPf = 0.91;
     }
   } else {
     targetWatts = 0;
     targetPf = 1.0;
   }
 
-  // Grid voltage oscillation ~230V +/- 2.5V + slight random noise
+  // Mains voltage oscillation ~230.0V +/- 1.8V
   const voltageBase = settings.nominalVoltage;
-  const gridJitter = Math.sin(Date.now() / 7000) * 2.2 + (Math.random() * 0.8 - 0.4);
+  const gridJitter = Math.sin(Date.now() / 7000) * 1.5 + (Math.random() * 0.6 - 0.3);
   const voltage = Math.round((voltageBase + gridJitter) * 10) / 10;
 
-  // Current calculation
+  // Current calculation: I = P / (V * PF) ~ 9.0 / (230 * 0.91) = ~0.043A
   const current = relayState && targetWatts > 0 
     ? Math.round((targetWatts / (voltage * targetPf)) * 1000) / 1000
     : 0.0;
@@ -229,6 +209,17 @@ async function startServer() {
   const PORT = process.env.PORT || 3000;
 
   app.use(express.json());
+
+  // CORS headers for ESP32 hardware and cross-origin clients
+  app.use((req: Request, res: Response, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    next();
+  });
 
   // 1. ESP32 Telemetry Ingestion Endpoint
   // ESP32 sends HTTP POST /api/telemetry
